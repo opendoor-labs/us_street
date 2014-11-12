@@ -1,6 +1,7 @@
 require "us_street/version"
 require 'yaml'
 require 'active_support/core_ext/object/blank'
+require 'active_support/core_ext/hash/indifferent_access'
 require 'active_support/core_ext/object/try'
 require 'active_support/inflector/inflections'
 require 'active_support/core_ext/integer/inflections'
@@ -37,7 +38,7 @@ class UsStreet
   end
 
   def self.clean_hash(hash)
-    hash.each_with_object({}) { |(k,v),hsh| hsh[k] = clean(v) }
+    hash.each_with_object({}.with_indifferent_access) { |(k,v),hsh| hsh[k] = clean(v) }
   end
 
   # Define methods for each of the components

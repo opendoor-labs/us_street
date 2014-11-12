@@ -170,5 +170,11 @@ describe UsStreet do
       expect(us_street.full_street).to eq('13 1st St')
       expect(us_street.display).to eq('13 1st St #14')
     end
+
+    it 'handles overrides with string keys' do
+      us_street = UsStreet.parse('123 Fake st', "unit" => 12)
+
+      expect(us_street.unit).to eq('12')
+    end
   end
 end
