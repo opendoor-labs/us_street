@@ -7,7 +7,7 @@ require 'active_support/inflector/inflections'
 require 'active_support/core_ext/integer/inflections'
 
 class UsStreet
-  COMPONENTS = [:unit, :street_number, :dir_prefix, :street_name, :street_suffix, :dir_suffix, :unit].freeze
+  COMPONENTS = [:unit, :street_number, :dir_prefix, :street_name, :street_suffix, :dir_suffix, :road_number].freeze
 
   f = File.expand_path('data/street_suffix_mapping.yml', __dir__)
   ROAD_SUFFIXES = YAML.load(File.read(f))
@@ -21,6 +21,8 @@ class UsStreet
     "east" => "e",
     "south" => "s",
     "west" => "w",
+    "nth" => "n",
+    "sth" => "s",
     "ne" => "ne",
     "nw" => "nw",
     "se" => "se",
@@ -56,7 +58,7 @@ class UsStreet
   end
 
   def street
-    @street ||= UsStreet.trim(dir_prefix, street_name, street_suffix, dir_suffix)
+    @street ||= UsStreet.trim(dir_prefix, street_name, street_suffix, dir_suffix, road_number)
   end
 
   def full_street
@@ -78,13 +80,19 @@ class UsStreet
 
     parts = full_street.split(' ')
     sidx, eidx = 0, parts.length - 1
-    unit_number = dir_suffix = dir_prefix = street_suffix = street_number = nil
+    unit_number = dir_suffix = dir_prefix = street_suffix = street_number = road_number = nil
 
     # start at the end and chomp
 
     # We could have a unit number last. Format '#\d+' but it's removed by the cleaners so match the original
     if match = original_full_street.match(/#(\d+)$/)
       unit_number = match[1]
+    end
+
+    # we may be on a numbered road. Like a country road.
+    if parts[eidx] =~ /^\d+$/
+      road_number = parts[eidx]
+      eidx -= 1
     end
 
     # We may have a directional suffix, and or a street suffix
@@ -118,8 +126,12 @@ class UsStreet
       street_name: overrides[:street_name].presence || parts[sidx..eidx].join(' '),
       street_suffix: road_mapping(overrides[:street_suffix]).presence || street_suffix,
       dir_suffix: direction_mapping(overrides[:dir_suffix]).presence || dir_suffix,
-      street_number: overrides[:street_number].presence || street_number
+      street_number: overrides[:street_number].presence || street_number,
+      road_number: overrides[:road_number].presence || road_number
     }
+
+    # we may have country or co for a country road.
+    out[:street_name] = 'co' if out[:street_name] == 'country'
 
     # perform one last mapping to be sure that we've got the correct 'ixes.
     out[:dir_prefix] = out[:dir_prefix].try(:upcase)

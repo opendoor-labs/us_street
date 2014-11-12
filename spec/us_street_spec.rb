@@ -173,8 +173,36 @@ describe UsStreet do
 
     it 'handles overrides with string keys' do
       us_street = UsStreet.parse('123 Fake st', "unit" => 12)
-
       expect(us_street.unit).to eq('12')
+    end
+
+    it 'handles country roads' do
+      street1 = UsStreet.parse('1455 Indian Rte 9500')
+      street2 = UsStreet.parse('1455 Country Road 2085')
+
+      expect(street1.full_street).to eq('1455 Indian Rte 9500')
+      expect(street1.street_number).to eq('1455')
+      expect(street1.street_name).to eq('Indian')
+      expect(street1.road_number).to eq('9500')
+      expect(street1.street_suffix).to eq('Rte')
+      expect(street1.unit).to be_nil
+
+      expect(street2.full_street).to eq('1455 Co Rd 2085')
+      expect(street2.street_number).to eq('1455')
+      expect(street2.street_name).to eq('Co')
+      expect(street2.road_number).to eq('2085')
+      expect(street2.street_suffix).to eq('Rd')
+      expect(street2.unit).to be_nil
+    end
+
+    it 'handles country roads with units' do
+      street = UsStreet.parse('1455 Country Road 2085 #12')
+      expect(street.full_street).to eq('1455 Co Rd 2085')
+      expect(street.street_number).to eq('1455')
+      expect(street.street_name).to eq('Co')
+      expect(street.road_number).to eq('2085')
+      expect(street.street_suffix).to eq('Rd')
+      expect(street.unit).to eq('12')
     end
   end
 end
