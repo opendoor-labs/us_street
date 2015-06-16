@@ -82,8 +82,6 @@ class UsStreet
     sidx, eidx = 0, parts.length - 1
     unit_number = dir_suffix = dir_prefix = street_suffix = street_number = road_number = nil
 
-    # start at the end and chomp
-
     # We could have a unit number last. Format '#\d+' but it's removed by the cleaners so match the original
     if match = original_full_street.match(/#(\d+)$/)
       unit_number = match[1]
@@ -95,23 +93,30 @@ class UsStreet
       eidx -= 1
     end
 
-    # We may have a directional suffix, and or a street suffix
-    eidx -= 1 if dir_suffix    = direction_mapping(parts[eidx])
-    eidx -= 1 if street_suffix = road_mapping(parts[eidx])
+    # strip suffixes starting at the end and working backwards
+    # Check for a postdirectional (directional suffix)
+    eidx -= 1 if eidx - sidx > 0 and dir_suffix    = direction_mapping(parts[eidx])
 
-    # if our current spread is 0 then someone may have put in 12 st for 12th Street. We want to end it here if that's true.
-    if eidx - sidx > 0
-      # lets look at the start of the string
-
-      # is there a street number?
-      if parts[sidx] =~ /^\d+$/
-        street_number = parts[sidx]
-        sidx += 1
+    # Check for a street suffix. If there's already a street suffix override,
+    # don't strip from string unless it's the same suffix.
+    # Otherwise "Forest Trail Rd" gets stripped to "Forest Trl"
+    if eidx - sidx > 0 and street_suffix_maybe = road_mapping(parts[eidx])
+      if overrides[:street_suffix].blank? or street_suffix_maybe == road_mapping(overrides[:street_suffix])
+        street_suffix = street_suffix_maybe
+        eidx -= 1
       end
-
-      # is there a directional prefix?
-      sidx += 1 if dir_prefix = direction_mapping(parts[sidx])
     end
+
+    # remove components from the beginning
+
+    # is there a street number at beginning
+    if eidx - sidx > 0 and parts[sidx] =~ /^\d+$/
+      street_number = parts[sidx]
+      sidx += 1
+    end
+
+    # is there a predirectional?
+    sidx += 1 if eidx - sidx > 0 and dir_prefix    = direction_mapping(parts[sidx])
 
     # fix weirdo street names and make them consistent
     parts[sidx] = "St" if parts[sidx] =~ /^((st\.?)|(saint))$/i  # catch "Saint John Street"

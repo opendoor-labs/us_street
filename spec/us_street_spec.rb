@@ -84,6 +84,12 @@ describe UsStreet do
         us_street = UsStreet.from_attrs("  123", 'S', "North 12th St WEST", 'Street', 'E')
         expect(us_street.full_street).to eq('123 S 12th St E')
       end
+
+      # yes this is a real address: 2644 E North Ln, Phoenix, AZ 85028
+      it "doesn't strip North if it's the full street name" do
+        us_street = UsStreet.from_attrs("2644", "E", "North", "Ln", nil)
+        expect(us_street.full_street).to eq("2644 E North Ln")
+      end
     end
   end
 
@@ -125,6 +131,11 @@ describe UsStreet do
       expect(us_street.full_street).to eq("123 N Main Southy")
     end
 
+    it "doesn't strip directions in street name" do
+      us_street = UsStreet.parse("2644 E North Ln")
+      expect(us_street.full_street).to eq("2644 E North Ln")
+    end
+
     it "strips off spaces" do
       us_street = UsStreet.parse("  123 N    main   southy  ")
       expect(us_street.full_street).to eq("123 N Main Southy")
@@ -145,7 +156,8 @@ describe UsStreet do
     it 'prefers an explicit street_suffix' do
       us_street = UsStreet.parse("123 main southy road", street_suffix: "st")
       expect(us_street.street_suffix).to eq('St')
-      expect(us_street.full_street).to eq("123 Main Southy St")
+      # we can't strip Road here, it may be part of the street name in fact.
+      expect(us_street.full_street).to eq("123 Main Southy Road St")
     end
 
     it 'handles unit numbers' do
@@ -203,6 +215,14 @@ describe UsStreet do
       expect(street.road_number).to eq('2085')
       expect(street.street_suffix).to eq('Rd')
       expect(street.unit).to eq('12')
+    end
+
+    it 'doesnt strip street when overrides are present' do
+      street = UsStreet.parse("PALM BEACH", {:street_number=>"20127", :dir_prefix=>"E", :street_suffix=>"Drive"})
+      expect(street.full_street).to eq('20127 E Palm Beach Dr')
+      expect(street.street_number).to eq('20127')
+      expect(street.street_name).to eq('Palm Beach')
+      expect(street.street_suffix).to eq('Dr')
     end
   end
 end
