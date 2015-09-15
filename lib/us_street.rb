@@ -36,7 +36,7 @@ class UsStreet
   def self.components; COMPONENTS; end
 
   def self.clean(str)
-    str.to_s.gsub(/([\.,:;]|\(.*?\))/, '').gsub(/#\d+$/, '').gsub(/\s+/, ' ').strip.downcase.presence
+    str.to_s.gsub(/([\.,:;]|\(.*?\))/, '').gsub(/.#\d+$/, '').gsub(/\s+/, ' ').strip.downcase.presence
   end
 
   def self.clean_hash(hash)
@@ -125,8 +125,9 @@ class UsStreet
     # Time to build up the output, prefer what was passed in
     # Note: We needed to decompose the street because the street may have had the components put into it
     # by some unsavoury operators :'(
+    overrides_unit = overrides[:unit].to_s.try(:match, /(\d+)/).try(:captures).try(:first)
     out = {
-      unit: overrides[:unit].presence || unit_number,
+      unit: overrides_unit || unit_number,
       dir_prefix: direction_mapping(overrides[:dir_prefix]).presence || dir_prefix,
       street_name: overrides[:street_name].presence || parts[sidx..eidx].join(' '),
       street_suffix: road_mapping(overrides[:street_suffix]).presence || street_suffix,

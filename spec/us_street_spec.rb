@@ -188,6 +188,11 @@ describe UsStreet do
       expect(us_street.unit).to eq('12')
     end
 
+    it 'handles units containing #' do
+      us_street = UsStreet.parse('123 Fake st', "unit" => "#12")
+      expect(us_street.unit).to eq('12')
+    end
+
     it 'handles country roads' do
       street1 = UsStreet.parse('1455 Indian Rte 9500')
       street2 = UsStreet.parse('1455 Country Road 2085')
