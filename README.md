@@ -1,6 +1,6 @@
 # UsStreet
 
-Parses and normalizes the street part of an address for US streets into it's parts.
+Parses and normalizes the street part of an address for US streets into its parts.
 
 
 ## Installation
