@@ -167,6 +167,20 @@ describe UsStreet do
       expect(us_street.display).to eq('123 123rd St #15')
     end
 
+    it 'handles alpha unit numbers' do
+      us_street = UsStreet.parse('123 123rd st #C')
+      expect(us_street.unit).to eq('C')
+      expect(us_street.full_street).to eq('123 123rd St')
+      expect(us_street.display).to eq('123 123rd St #C')
+    end
+
+    it 'handles alpha unit numbers' do
+      us_street = UsStreet.parse('123 123rd st', unit: 'C')
+      expect(us_street.unit).to eq('C')
+      expect(us_street.full_street).to eq('123 123rd St')
+      expect(us_street.display).to eq('123 123rd St #C')
+    end
+
     it 'handles 123rd st without ordinals or street number' do
       us_street = UsStreet.parse('123 st')
       expect(us_street.street_number).to eq(nil)

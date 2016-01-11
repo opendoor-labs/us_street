@@ -36,7 +36,7 @@ class UsStreet
   def self.components; COMPONENTS; end
 
   def self.clean(str)
-    str.to_s.gsub(/([\.,:;]|\(.*?\))/, '').gsub(/.#\d+$/, '').gsub(/\s+/, ' ').strip.downcase.presence
+    str.to_s.gsub(/([\.,:;]|\(.*?\))/, '').gsub(/.#[a-zA-Z0-9]+$/, '').gsub(/\s+/, ' ').strip.downcase.presence
   end
 
   def self.clean_hash(hash)
@@ -82,8 +82,8 @@ class UsStreet
     sidx, eidx = 0, parts.length - 1
     unit_number = dir_suffix = dir_prefix = street_suffix = street_number = road_number = nil
 
-    # We could have a unit number last. Format '#\d+' but it's removed by the cleaners so match the original
-    if match = original_full_street.match(/#(\d+)$/)
+    # We could have a unit number last. Format '#[a-zA-Z0-9]+' but it's removed by the cleaners so match the original
+    if match = original_full_street.match(/#([a-zA-Z0-9]+)$/)
       unit_number = match[1]
     end
 
@@ -125,9 +125,9 @@ class UsStreet
     # Time to build up the output, prefer what was passed in
     # Note: We needed to decompose the street because the street may have had the components put into it
     # by some unsavoury operators :'(
-    overrides_unit = overrides[:unit].to_s.try(:match, /(\d+)/).try(:captures).try(:first)
+    overrides_unit = overrides[:unit].to_s.try(:match, /([a-zA-Z0-9]+)/).try(:captures).try(:first)
     out = {
-      unit: overrides_unit || unit_number,
+      unit: (overrides_unit || unit_number).try(:upcase),
       dir_prefix: direction_mapping(overrides[:dir_prefix]).presence || dir_prefix,
       street_name: overrides[:street_name].presence || parts[sidx..eidx].join(' '),
       street_suffix: road_mapping(overrides[:street_suffix]).presence || street_suffix,
