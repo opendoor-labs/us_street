@@ -21,10 +21,10 @@ if !input_path or !output_path
   exit(1)
 end
 
-CSV.open(input_path, "wb") do |out|
+CSV.open(output_path, "wb") do |out|
   out << UsStreet.components
 
-  CSV.foreach(output_path, headers: :first_row) do |row|
+  CSV.foreach(input_path, headers: :first_row) do |row|
     full_street = row['full_street']
     overrides = row.header?('overrides') ? JSON.parse(row['overrides']) : {}
 
