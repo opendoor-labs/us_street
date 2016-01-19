@@ -37,6 +37,7 @@ class UsStreet
 
   def self.clean(str)
     str.to_s
+      .strip                       # 'cuz real data sux
       .gsub(/[\.,:;]/, '')         # remove non-meaningful characters
       .gsub(/[-]+$/, '')           # remove non-meaningful characters on the end
       .gsub(/\(.*?\)/, '')         # remove anything in parentheses
