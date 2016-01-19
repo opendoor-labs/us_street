@@ -9,7 +9,7 @@ require 'active_support/core_ext/integer/inflections'
 class UsStreet
   COMPONENTS = [:unit, :street_number, :dir_prefix, :street_name, :street_suffix, :dir_suffix, :road_number].freeze
 
-  f = File.expand_path('data/street_suffix_mapping.yml', __dir__)
+  f = File.expand_path('data/street_suffix_mapping.yml', File.dirname(File.realpath(__FILE__)))
   ROAD_SUFFIXES = YAML.load(File.read(f))
 
   DIRECTIONAL_MAPPINGS = {
