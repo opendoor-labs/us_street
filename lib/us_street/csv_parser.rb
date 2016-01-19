@@ -1,4 +1,4 @@
-require 'CSV'
+require 'csv'
 require 'json'
 require 'us_street'
 require 'optparse'
