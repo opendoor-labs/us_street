@@ -36,7 +36,14 @@ class UsStreet
   def self.components; COMPONENTS; end
 
   def self.clean(str)
-    str.to_s.gsub(/([\.,:;]|\(.*?\))/, '').gsub(/.#[a-zA-Z0-9]+$/, '').gsub(/\s+/, ' ').strip.downcase.presence
+    str.to_s
+      .strip                       # 'cuz real data sux
+      .gsub(/[\.,:;]/, '')         # remove non-meaningful characters
+      .gsub(/[-]+$/, '')           # remove non-meaningful characters on the end
+      .gsub(/\(.*?\)/, '')         # remove anything in parentheses
+      .gsub(/.#[a-zA-Z0-9]+$/, '') # remove unit numbers on the end
+      .gsub(/\s+/, ' ')            # collapse multiple spaces to one
+      .strip.downcase.presence
   end
 
   def self.clean_hash(hash)
@@ -95,7 +102,7 @@ class UsStreet
 
     # strip suffixes starting at the end and working backwards
     # Check for a postdirectional (directional suffix)
-    eidx -= 1 if eidx - sidx > 0 and dir_suffix    = direction_mapping(parts[eidx])
+    eidx -= 1 if eidx - sidx > 0 and dir_suffix = direction_mapping(parts[eidx])
 
     # Check for a street suffix. If there's already a street suffix override,
     # don't strip from string unless it's the same suffix.

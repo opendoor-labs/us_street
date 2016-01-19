@@ -39,6 +39,11 @@ describe UsStreet do
       expect(us_street.full_street).to eq("123 N Main Southy")
     end
 
+    it "strips off unrequired characters from the end" do
+      us_street = UsStreet.from_attrs(4109, nil, "N BOULDER CANYON --", nil, nil)
+      expect(us_street.full_street).to eq("4109 N Boulder Cyn")
+    end
+
     it "strips off spaces" do
       us_street = UsStreet.from_attrs("  123", nil, "N. main, -southy  ", nil, nil)
       expect(us_street.full_street).to eq("123 N Main Southy")
@@ -129,6 +134,14 @@ describe UsStreet do
     it "strips off unrequired characters" do
       us_street = UsStreet.parse("123 N. main, -southy")
       expect(us_street.full_street).to eq("123 N Main Southy")
+    end
+
+    it "strips off unrequired characters from the end" do
+      us_street = UsStreet.parse("4109 N BOULDER CANYON --")
+      expect(us_street.full_street).to eq("4109 N Boulder Cyn")
+
+      us_street = UsStreet.parse("4109 N BOULDER CANYON --   ")
+      expect(us_street.full_street).to eq("4109 N Boulder Cyn")
     end
 
     it "doesn't strip directions in street name" do
