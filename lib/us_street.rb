@@ -136,21 +136,20 @@ class UsStreet
     out = {
       unit: (overrides_unit || unit_number).try(:upcase),
       dir_prefix: direction_mapping(overrides[:dir_prefix]).presence || dir_prefix,
-      street_name: overrides[:street_name].presence || parts[sidx..eidx].join(' '),
-      street_suffix: road_mapping(overrides[:street_suffix]).presence || street_suffix,
+      street_name: compose_parts(overrides[:street_name].presence&.split(' ')) || compose_parts(parts[sidx..eidx]),
+      street_suffix: road_mapping(overrides[:street_suffix]) || street_suffix,
       dir_suffix: direction_mapping(overrides[:dir_suffix]).presence || dir_suffix,
       street_number: overrides[:street_number].presence || street_number,
       road_number: overrides[:road_number].presence || road_number
     }
 
     # we may have country or co for a country road.
-    out[:street_name] = 'co' if out[:street_name] == 'country'
+    out[:street_name] = 'Co' if out[:street_name] == 'Country'
 
     # perform one last mapping to be sure that we've got the correct 'ixes.
     out[:dir_prefix] = out[:dir_prefix].try(:upcase)
     out[:dir_suffix] = out[:dir_suffix].try(:upcase)
-    out[:street_suffix] = road_mapping(out[:street_suffix]).try(:titleize)
-    out[:street_name] = out[:street_name].try(:titleize)
+    out[:street_suffix] = safe_titleize_term(road_mapping(out[:street_suffix]))
 
     out[:street_name] = out[:street_name].to_i.ordinalize if out[:street_name].present? && out[:street_name] =~ /^\d+$/
 
@@ -177,6 +176,22 @@ class UsStreet
 
   def self.trim(*address_components)
     address_components.compact.join(' ').gsub(/\s+/, ' ').strip
+  end
+
+  def self.compose_parts(parts)
+    return nil unless parts
+    parts.map { |part| safe_titleize_term(part) }.join(' ')
+  end
+
+  # Expects a single term with no whitespace
+  # Capitalize all characters after a word boundary
+  # Remove all leading and trailing non word characters
+  def self.safe_titleize_term(term)
+    return nil unless term
+    term.downcase
+      .gsub(/^[^\w]+/, '')
+      .gsub(/[^\w]$+/, '')
+      .gsub(/\b\w/) { |c| c.upcase }
   end
 
   def ==(other)
