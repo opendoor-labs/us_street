@@ -39,9 +39,20 @@ describe UsStreet do
       expect(us_street.full_street).to eq("123 N Main Southy")
     end
 
+    it "strips off unrequired characters from the middle" do
+      us_street = UsStreet.from_attrs(123, nil, "N. main, - southy", nil, nil)
+      expect(us_street.full_street).to eq("123 N Main Southy")
+    end
+
     it "strips off unrequired characters from the end" do
       us_street = UsStreet.from_attrs(4109, nil, "N BOULDER CANYON --", nil, nil)
       expect(us_street.full_street).to eq("4109 N Boulder Cyn")
+    end
+
+    it 'does not strip punctuation that appears in a term' do
+      us_street = UsStreet.from_attrs(2621, nil, 'Alan-A-Dale', nil, nil)
+      expect(us_street.full_street).to eq("2621 Alan-A-Dale")
+      expect(us_street.street_suffix).to eq(nil)
     end
 
     it "strips off spaces" do
@@ -255,6 +266,50 @@ describe UsStreet do
       expect(street.street_number).to eq('20127')
       expect(street.street_name).to eq('Palm Beach')
       expect(street.street_suffix).to eq('Dr')
+    end
+
+    # TODO
+    xit 'handles dashes in house number - hawaii...' do
+      street = UsStreet.parse('47-310 Lulani Street')
+      expect(street.full_street).to eq('47-310 Lulani St')
+      expect(street.street_number).to eq('47-310')
+      expect(street.street_name).to eq('Lulani')
+      expect(street.street_suffix).to eq('St')
+      expect(street.road_number).to be_nil
+      expect(street.unit).to be_nil
+    end
+  end
+
+  describe 'does not double normalize' do
+    shared_examples 'a stable address' do
+      it 'does not change after a double normalize' do
+        first_normalize = UsStreet.parse(address_str)
+        second_normalize = UsStreet.parse(first_normalize.full_street)
+
+        expect(first_normalize.full_street).to eq(second_normalize.full_street)
+        expect(first_normalize.full_street).to eq(second_normalize.full_street)
+      end
+
+      it 'does not change after a double normalize - passing overrides' do
+        first_normalize = UsStreet.parse(address_str)
+        second_normalize = UsStreet.parse(first_normalize.full_street, first_normalize.components)
+
+        expect(first_normalize.full_street).to eq(second_normalize.full_street)
+      end
+    end
+
+    [
+      '11421 NW Laurelwood Ln SE',
+      'N. main, -southy',
+      'N. main, - southy',
+      '47-310 Lulani Street',
+      '2621 Alan-A-Dale',
+    ].each do |address_str|
+      context "with address #{address_str}" do
+        let(:address_str) { address_str }
+
+        it_behaves_like 'a stable address'
+      end
     end
   end
 end
